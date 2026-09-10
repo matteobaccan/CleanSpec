@@ -12,7 +12,7 @@ Nobody asked for that check. Nobody asked for it because it is obvious, and it i
 
 This chapter is about where those decisions are actually made, and how to take them back.
 
-## 2.1 What the machine is really doing
+## 2.1 What the language model is really doing
 
 Chapter 1 called the generator a nondeterministic compiler and left the mechanism alone. Now the mechanism matters, because you cannot write effective input for a system whose behavior you have the wrong model of. Strip away the interface and the tooling and a large language model (LLM) does one thing repeatedly: given a sequence of tokens, it produces a probability distribution over what the next token might be, samples from that distribution, appends the result, and repeats.
 
@@ -26,7 +26,7 @@ Two consequences follow immediately, and both are practical rather than philosop
 
 The first is that generation is sampling, so identical input yields different programs. The distribution at each step assigns nonzero probability to many continuations, and the sampler takes one. The two transfer functions in the opening scenario were not a malfunction. They were two draws from the same distribution, which is exactly what sampling means. Any workflow that depends on the generator producing the same thing twice is built on a false assumption, which is why verification in this discipline is mechanical and repeated rather than observed once.
 
-The second consequence is the useful one. Because every token is conditioned on the entire prefix, your text does not "instruct" the machine in the way a function call instructs a runtime. It reweights. Each constraint you state makes some continuations much more likely and others much less likely, and the effect persists for the rest of the generation. This is why the distinction between saying something and saying it precisely is not stylistic. A vague sentence reweights weakly. A typed, quantified, numbered sentence reweights hard.
+The second consequence is the useful one. Because every token is conditioned on the entire prefix, your text does not "instruct" the language model in the way a function call instructs a runtime. It reweights. Each constraint you state makes some continuations much more likely and others much less likely, and the effect persists for the rest of the generation. This is why the distinction between saying something and saying it precisely is not stylistic. A vague sentence reweights weakly. A typed, quantified, numbered sentence reweights hard.
 
 I find it helpful to name the thing being reweighted. Call the set of programs the generator could plausibly produce from a given input its **output space**. Every program in that space is consistent with what you wrote. Most of them are wrong in ways you care about. The entire craft of specification engineering, as I practice it, is the craft of making that space small enough that its remaining members are all acceptable, and then checking mechanically that the one you got is a member.
 
@@ -76,7 +76,7 @@ None of these choices is stupid in general. Floating point is correct for physic
 
 This is why "the agent made a mistake" is usually the wrong diagnosis, and an expensive one, because it sends you to fix the output instead of the input. In the opening scenario the agent made no mistake. It was asked for a transfer and it produced a transfer, twice, each time filling the unstated parts with the most common pattern available. The float was not an error; it was a default. The missing self-transfer check was not an oversight; it was an unasked question.
 
-There is a corollary worth stating, because it changes how you review. The most dangerous part of a generated file is the part nobody specified, and that part is invisible in a diff. A reviewer reads what is there and judges whether it looks right. What they cannot see is the set of decisions that were never anybody's decision. The only defense I know is to enumerate the decisions in advance, in the document, which is what the failure matrices of Chapter 5 and the gates of Chapter 10 operationalize.
+There is a corollary worth stating, because it changes how you review. The most dangerous part of a generated file is the part nobody specified, and that part is invisible in a diff. A reviewer reads what is there and judges whether it looks right. What they cannot see is the set of decisions that were never anybody's decision. The only defense I know is to enumerate the decisions in advance, in the document, which is what the failure matrices of Chapter 7 and the gates of Chapter 10 operationalize.
 
 ## 2.4 Longer is not better
 
@@ -86,7 +86,9 @@ Three distinct effects work against length. The first is the hard limit: the con
 
 The second effect appears well before the limit. As the input grows, attention to material in the middle of it degrades measurably, an effect usually called **lost in the middle**. Constraints at the very beginning and the very end of a long input carry more weight than identical constraints buried at forty percent of its length. I treat this as a layout constraint on my documents, not as a curiosity. If a rule is critical, it belongs somewhere the geometry favors, and it may belong in two places. Chapter 8 turns the same observation into a structural principle about giving each agent only the slice of specification its task requires.
 
-The third effect is the one that does real damage, and it is **context poisoning**. Once irrelevant, outdated, or contradictory material is in the context, it conditions every subsequent token. A superseded requirement that nobody deleted does not sit quietly; it competes with the current one. A pasted snippet of a rejected design competes with the accepted design. An obsolete example of a response shape will be reproduced faithfully, because examples are the strongest signal a generator receives, stronger than the prose around them telling it not to. I have watched a single stale code block in an appendix drive three rounds of wrong generation while everyone argued about the prompt.
+The third effect is the one that does real damage, and it is **context poisoning**. Once irrelevant, outdated, or contradictory material is in the context, it conditions every subsequent token. A superseded requirement that nobody deleted does not sit quietly; it competes with the current one. A pasted snippet of a rejected design competes with the accepted design. An obsolete example of a response shape will be reproduced faithfully, because examples are the strongest signal a generator receives, stronger than the prose around them telling it not to. Picture a stale code block in an appendix that drives three rounds of wrong generation while everyone argues about the prompt; the document says one thing and the example says another, and the example wins every time.
+
+<!-- AUTHOR: a real example of stale context driving repeated wrong generation would fit here. -->
 
 Context poisoning explains something that confuses teams new to this discipline: adding material to a specification can make the output worse, not merely no better. The mechanism is dilution plus competition. Every token you add reduces the relative weight of every constraint already there, and if the added tokens conflict with those constraints, the generator resolves the conflict by sampling, invisibly. Chapter 11 treats the context as a budget to be managed deliberately, and Chapter 13 catalogs the document-level smells that poison it.
 
@@ -116,14 +118,14 @@ Now the same requirement, rewritten as constraints:
 - Repeated `idempotency_key` (UUID): return first result, move no money.
 - On failure: no balance changes.
 
-That is about 40 words, roughly 60 tokens, and it states nine formal constraints: the type, the positive-integer bound, the inequality, the two exact deltas, the no-other-change rule, the isolation level, idempotency, and atomicity on failure. The table below compares the two versions on the three numbers that matter.
+That is about 45 words, roughly 60 tokens, and it states nine formal constraints: the type, the positive-integer bound, the inequality, the two exact deltas, the no-other-change rule, the isolation level, idempotency, and atomicity on failure. The table below compares the two versions on the three numbers that matter.
 
 | Version | Approximate words | Approximate tokens | Formal constraints | Constraint Density |
 | :--- | ---: | ---: | ---: | ---: |
 | Polite paragraph | 120 | 155 | 0 | 0.00 |
-| Dense rewrite | 40 | 60 | 9 | 0.15 |
+| Dense rewrite | 45 | 60 | 9 | 0.15 |
 
-The dense version is a third of the length and states nine things the long one did not. It is also, and this surprises people, easier to review: a colleague can disagree with line three specifically, which is not a move you can make against "handled correctly and safely". Reviewability and Constraint Density rise together, because both depend on each statement being separately true or false.
+The dense version is a little over a third of the length and states nine things the long one did not. It is also, and this surprises people, easier to review: a colleague can disagree with line three specifically, which is not a move you can make against "handled correctly and safely". Reviewability and Constraint Density rise together, because both depend on each statement being separately true or false.
 
 Two honest caveats. Constraint Density is a ratio to reason with, not a metric to report in a dashboard; the moment a team starts measuring it, somebody will game it by splitting one constraint into three. And maximizing it does not mean deleting all explanation. A short rationale next to a surprising constraint earns its tokens, because it stops a future reader — or a future agent asked to refactor — from helpfully removing the constraint. What I am against is the preamble that explains nothing and the courtesy that constrains nothing.
 
