@@ -1,0 +1,14 @@
+---
+title: "Clean Spec"
+subtitle: "Specification Engineering for the Age of AI"
+author: "Matteo Baccan"
+lang: en-US
+date: "2026"
+rights: "© 2026 Matteo Baccan. All rights reserved."
+toc: true
+toc-depth: 2
+numbersections: false
+documentclass: book
+geometry: margin=1in
+mainfont: ""
+---
