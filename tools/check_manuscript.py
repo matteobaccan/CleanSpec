@@ -6,6 +6,10 @@ Usage:
     python tools/check_manuscript.py manuscript/05-failure-of-natural-language.md
 
 Exit code 0 when every checked file passes, 1 otherwise.
+
+Fenced code blocks are excluded from the heading, placeholder, language, and
+cross-reference checks (word count, fence balance, and spec ID checks still
+see the full text, fences included).
 """
 from __future__ import annotations
 
@@ -53,6 +57,10 @@ def strip_html_comments(text: str) -> str:
     return re.sub(r"<!--.*?-->", "", text, flags=re.S)
 
 
+def strip_fenced_code(text: str) -> str:
+    return re.sub(r"^```.*?^```[ \t]*$", "", text, flags=re.S | re.M)
+
+
 def count_words(text: str) -> int:
     return len(re.findall(r"\b[\w'’-]+\b", text))
 
@@ -61,6 +69,7 @@ def check_file(path: pathlib.Path) -> tuple[int, list[str]]:
     errors: list[str] = []
     raw = path.read_text(encoding="utf-8")
     text = strip_html_comments(raw)
+    prose = strip_fenced_code(text)
     prefix = path.name[:2]
 
     words = count_words(text)
@@ -68,7 +77,7 @@ def check_file(path: pathlib.Path) -> tuple[int, list[str]]:
     if not lo <= words <= hi:
         errors.append(f"word count {words} is outside {lo}-{hi}")
 
-    h1_lines = [line for line in text.splitlines() if line.startswith("# ")]
+    h1_lines = [line for line in prose.splitlines() if line.startswith("# ")]
     allowed = H1_ALLOWED.get(prefix, 1)
     if len(h1_lines) != allowed:
         errors.append(f"expected {allowed} H1 heading(s), found {len(h1_lines)}")
@@ -77,16 +86,16 @@ def check_file(path: pathlib.Path) -> tuple[int, list[str]]:
         errors.append("file must start with an H1 heading")
 
     if prefix in CHAPTER_PREFIXES:
-        if "## Key Takeaways" not in text:
+        if "## Key Takeaways" not in prose:
             errors.append("missing '## Key Takeaways' section")
-        elif not text.rstrip().split("## Key Takeaways")[-1].strip().startswith("-"):
+        elif not prose.rstrip().split("## Key Takeaways")[-1].strip().startswith("-"):
             errors.append("'## Key Takeaways' must be followed by a bulleted list")
 
     for pattern in FORBIDDEN:
-        for m in re.finditer(pattern, text, flags=re.IGNORECASE):
+        for m in re.finditer(pattern, prose, flags=re.IGNORECASE):
             errors.append(f"forbidden placeholder {m.group(0)!r}")
 
-    for m in ITALIAN.finditer(text):
+    for m in ITALIAN.finditer(prose):
         errors.append(f"possible Italian leftover {m.group(0)!r}")
 
     if text.count("```") % 2:
@@ -96,7 +105,7 @@ def check_file(path: pathlib.Path) -> tuple[int, list[str]]:
         if m.group(0) not in KNOWN_SPEC_IDS:
             errors.append(f"unregistered spec id {m.group(0)}; add it to STYLE.md and KNOWN_SPEC_IDS")
 
-    for m in CHAPTER_REF.finditer(text):
+    for m in CHAPTER_REF.finditer(prose):
         n = int(m.group(1))
         if not 1 <= n <= 17:
             errors.append(f"cross-reference to nonexistent Chapter {n}")
