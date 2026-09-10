@@ -38,7 +38,7 @@ Introduce a principle with a bold name the first time, then refer to it by name:
 
 - Code examples: Python 3 with type hints as the primary language; TypeScript as the secondary. Keep examples under 40 lines.
 - Schemas: JSON Schema 2020-12 (`"$schema": "https://json-schema.org/draft/2020-12/schema"`). Always include `"additionalProperties": false` on object schemas in spec examples.
-- Diagrams: Mermaid in ```mermaid fences for state machines (`stateDiagram-v2`) and sequences (`sequenceDiagram`). ASCII diagrams in plain ``` fences for pipelines and box layouts (reuse the draft's ASCII art where it exists).
+- Diagrams: Mermaid in ```` ```mermaid ```` fences for state machines (`stateDiagram-v2`) and sequences (`sequenceDiagram`). ASCII diagrams in plain ```` ``` ```` fences for pipelines and box layouts (reuse the draft's ASCII art where it exists).
 - Tables: GitHub-flavored Markdown with a header row and alignment row. Every table has a one-sentence lead-in.
 - Tools you may name: JSON Schema, Mermaid, RFC 2119, RFC 8174, Hypothesis, fast-check, mypy, tsc, pytest, Git, CI, CLAUDE.md-style instruction files (say "an agent instruction file such as CLAUDE.md"). Do not name LLM vendors, model names, IDEs, or SaaS products.
 - Fences always start at column 0 and are never nested. Never wrap a Markdown spec example in an outer fence; show it as plain Markdown at heading levels H3/H4, with inner fences only for code, schemas, YAML, or diagrams.
