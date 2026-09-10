@@ -39,9 +39,11 @@ If an inference engine turns a description of required behavior into running cod
 
 I want to be precise about what "intermediate" does and does not mean here, because the word invites a misreading. It does not mean unimportant, and it does not mean disposable. The intermediate representation is the thing you deploy, profile, and get paged about at three in the morning. Compiler output is also the thing that actually runs, and we take it extremely seriously. "Intermediate" means only that it is derived: it is downstream of a more authoritative document, and when it disagrees with that document, it is the code that is wrong.
 
-The engine producing it is a large language model (LLM), and from here on I will call it a language model. For the purposes of this chapter, what matters is the role it plays rather than how it works, and the role is best named directly: it is a **nondeterministic compiler**. It consumes a description in natural language and emits code, which is what a compiler does. Everything else about it violates what we expect from compilers. Run it twice on the same input and you get two different programs, both plausible, sometimes differing in behavior you care about. It has no language standard, no reference semantics, and no errata list. Where a conventional compiler rejects what it cannot interpret, this one interprets everything, because producing output is the only thing it knows how to do.
+The engine producing it is a large language model (LLM), and from here on I will call it a language model. For the purposes of this chapter, what matters is the role it plays rather than how it works, and the role is best named directly: it is a **nondeterministic compiler**. It consumes a description in natural language and emits code, which is what a compiler does.
 
-The missing errata list is worth dwelling on, because it breaks a habit you rely on more than you notice. When a conventional toolchain miscompiles something, the bug has an identity: a number, a report, a version where it appears and a version where it is fixed, and a workaround you can write down and hand to the next person. A generator that makes a poor choice offers none of that. There is no defect to file, because nothing was violated; the output was one valid sample from a distribution that also contains better ones. You cannot fix it upstream, and you cannot rely on it not recurring. All you can do is change the input or check the output, which is a strong hint about where the engineering work has gone.
+Everything else about it violates what we expect from compilers. Run it twice on the same input and you get two different programs, both plausible, sometimes differing in behavior you care about. It has no language standard, no reference semantics, and no errata list. Where a conventional compiler rejects what it cannot interpret, this one interprets everything, because producing output is the only thing it knows how to do.
+
+The missing errata list is worth dwelling on, because it breaks a habit you rely on more than you notice. When a conventional toolchain miscompiles something, the bug has an identity: a number, a report, a version where it appears and a version where it is fixed. It also has a workaround you can write down and hand to the next person. A generator that makes a poor choice offers none of that. There is no defect to file, because nothing was violated; the output was one valid sample from a distribution that also contains better ones. You cannot fix it upstream and you cannot rely on it not recurring, so all you can do is change the input or check the output, which is a strong hint about where the engineering work has gone.
 
 That last property is the one that reshapes the work. A conventional compiler treats silence in your source as a syntax error: omit the return type, and it either infers it by documented rules or refuses to proceed. A nondeterministic compiler treats silence as permission to choose. Omit what happens when the amount is zero, and you will get a choice, made from the statistical habits of an enormous amount of public code, and that code stores money in floating-point numbers and swallows exceptions. Your specification's gaps are not questions waiting to be asked. They are delegated decisions, and you will not be told which ones you delegated.
 
@@ -57,27 +59,34 @@ Vibecoding is the name that stuck for the informal practice: conversational prom
 
 The curve has two regimes. Below roughly a thousand lines, or inside a single domain with no real invariants, perceived productivity climbs steeply and the climb is not an illusion. You are getting real working software for a marginal fraction of what it used to cost. Past the toy threshold, which I would put somewhere past five thousand lines or the moment two application domains start interacting, the trend inverts. The absence of stated boundaries produces entropy, and the entropy compounds, because each fix is made by an agent that has no statement of global truth to check itself against. This is the regime where fixing one bug introduces two invisible regressions, and where the squad in the opening scenario spent its third month.
 
-The draft chart below is the one I keep redrawing on whiteboards. The rising line is the informal approach, the flat line is the disciplined one, and the interesting part is where they cross.
+The chart below is the one I keep redrawing on whiteboards. The rising curve is the informal approach, whose verification cost climbs as the system gets more complex. The flat line is the disciplined one, Spec-Driven Development (SDD), whose verification cost starts higher and then stays roughly level. The interesting part is where the two meet.
 
 ```
 Cost
   ^
-  |                                   / Informal approach (vibecoding)
-  |                                  /  Verification cost: O(N^2)
-  |                                 /
-  |                                /
-  |                               /
-  |                              /
-  |-----------------------------/------------------------
-  |                            /      Clean Spec approach (SDD)
-  |                           /       Constant verification cost: O(1)
-  |                          /
-  +-------------------------------------------------------> System complexity (N)
+  |                                                *  Informal approach (vibecoding):
+  |                                               *   verification cost grows like N^2
+  |                                             *
+  |                                           *
+  |                                        *
+  |                                     *
+  |                                 *
+  |                             *
+  |                        *
+  |                   *
+  |...............X......................................... Clean Spec (SDD):
+  |             * ^                                          verification cost
+  |          *    crossing point                             stays roughly constant
+  |       *
+  |    *
+  +---------------------------------------------------------> System complexity (N)
 ```
 
 Now the two claims in words, because notation that nobody unpacks is decoration. The cost of generating code is roughly constant per feature, written $O(1)$: the fiftieth feature costs about what the first one cost, because the generator's effort does not grow with the size of your system. That flatness is exactly why the early regime feels so good, and it is also the trap, because generation is the cheap half.
 
-The second claim is about the other half. Without a written specification, the cost of verifying a change grows with the square of the number of implicit invariants in the system, written $O(N^2)$, where $N$ counts the rules that everyone assumes and nobody has recorded. The reason is combinatorial rather than mysterious. With $N$ unstated assumptions there are $N(N-1)/2$ pairs of them, which grows like $N^2$, and every pair is a place where satisfying one assumption can violate the other. Points expire after ninety days; merged accounts inherit balances. Each rule is obvious alone. Together they decide whether a merge resurrects expired points, and nobody has ever written down which answer is correct.
+The second claim is about the other half. Without a written specification, the cost of verifying a change grows with the square of the number of implicit invariants in the system, written $O(N^2)$, where $N$ counts the rules that everyone assumes and nobody has recorded. The reason is combinatorial rather than mysterious. With $N$ unstated assumptions there are $N(N-1)/2$ pairs of them, which grows like $N^2$, and every pair is a place where satisfying one assumption can violate the other.
+
+Meridian's loyalty service makes that concrete. Points expire after ninety days; merged accounts inherit balances. Each rule is obvious alone. Together they decide whether a merge resurrects expired points, and nobody has ever written down which answer is correct.
 
 That is why verification cost, not generation cost, sets the pace of a mature system. Checking a change against an unwritten rule means reconstructing the rule first, from code and memory and whoever is still on the team, and then doing it again for the next pair. The work is invisible in planning, lands as incident response, and scales badly with exactly the thing that makes a system valuable, which is the number of rules it enforces.
 
