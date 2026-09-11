@@ -10,5 +10,6 @@ toc-depth: 2
 numbersections: false
 documentclass: book
 geometry: margin=1in
-mainfont: ""
+mainfont: "DejaVu Serif"
+monofont: "DejaVu Sans Mono"
 ---
