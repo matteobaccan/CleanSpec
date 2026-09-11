@@ -1,0 +1,30 @@
+#!/bin/sh
+# Rebuilds the book before every commit, so build/out/ (tracked in the repo)
+# never drifts from manuscript/. Enable once per clone with:
+#
+#   git config core.hooksPath .githooks
+#
+# If Pandoc/PowerShell aren't installed, the build is skipped with a warning
+# rather than blocking the commit; if the build tools ARE present and the
+# build actually fails, the commit is aborted.
+
+set -e
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+if ! command -v pwsh >/dev/null 2>&1; then
+    echo "pre-commit: pwsh not found, skipping book build (build/out/ may be stale)." >&2
+    exit 0
+fi
+
+echo "pre-commit: building the book (manuscript/ -> build/out/)..."
+if ! pwsh build/build.ps1; then
+    echo "pre-commit: build failed, aborting commit." >&2
+    exit 1
+fi
+
+git add build/out/clean-spec.md build/out/clean-spec.epub build/out/clean-spec.docx build/out/clean-spec.pdf 2>/dev/null || true
+
+echo "pre-commit: build/out/ refreshed and staged."
+exit 0

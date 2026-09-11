@@ -16,7 +16,9 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $manuscript = Join-Path $root 'manuscript'
 $out = Join-Path $PSScriptRoot 'out'
+$tmp = Join-Path $PSScriptRoot 'tmp'
 New-Item -ItemType Directory -Force $out | Out-Null
+New-Item -ItemType Directory -Force $tmp | Out-Null
 
 # Part titles are inserted before the first chapter of each part.
 $parts = @{
@@ -75,8 +77,8 @@ foreach ($fmt in $Formats) {
             # cover is injected as a full-bleed page before the body via raw LaTeX:
             # one snippet for the preamble (package), one for right after \begin{document}.
             $coverPath = ($cover -replace '\\', '/')
-            $coverHeaderTex = Join-Path $out 'cover-header.tex'
-            $coverBodyTex = Join-Path $out 'cover-body.tex'
+            $coverHeaderTex = Join-Path $tmp 'cover-header.tex'
+            $coverBodyTex = Join-Path $tmp 'cover-body.tex'
             # Disable Pandoc's automatic plain-text title page: the cover image
             # already carries the title, subtitle, and author.
             "\usepackage{graphicx}`n\let\maketitle\relax" | Set-Content -Encoding UTF8 $coverHeaderTex
