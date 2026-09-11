@@ -70,6 +70,26 @@ foreach ($fmt in $Formats) {
             continue
         }
         $args += @('--pdf-engine', $engine)
+        if (Test-Path $cover) {
+            # Pandoc's plain LaTeX template has no titlepage-image hook, so the
+            # cover is injected as a full-bleed page before the body via raw LaTeX:
+            # one snippet for the preamble (package), one for right after \begin{document}.
+            $coverPath = ($cover -replace '\\', '/')
+            $coverHeaderTex = Join-Path $out 'cover-header.tex'
+            $coverBodyTex = Join-Path $out 'cover-body.tex'
+            # Disable Pandoc's automatic plain-text title page: the cover image
+            # already carries the title, subtitle, and author.
+            "\usepackage{graphicx}`n\let\maketitle\relax" | Set-Content -Encoding UTF8 $coverHeaderTex
+            @"
+\begin{titlepage}
+\thispagestyle{empty}
+\newgeometry{margin=0pt}
+\noindent\includegraphics[width=\paperwidth,height=\paperheight]{$coverPath}
+\restoregeometry
+\end{titlepage}
+"@ | Set-Content -Encoding UTF8 $coverBodyTex
+            $args += @('--include-in-header', $coverHeaderTex, '--include-before-body', $coverBodyTex)
+        }
     }
     Write-Host "pandoc -> $target"
     & pandoc @args
