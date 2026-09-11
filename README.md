@@ -15,7 +15,6 @@ Prebuilt copies live in `build/out/` and are kept current by a pre-commit hook (
 
 ## Layout
 
-- `book.md` — original Italian draft (source material, never edited).
 - `manuscript/` — the English manuscript, one file per chapter, plus `STYLE.md` and `OUTLINE.md`.
 - `tools/check_manuscript.py` — lint script that enforces the chapter conventions.
 - `build/build.ps1` — concatenates the chapters and renders EPUB/DOCX/PDF with Pandoc.
