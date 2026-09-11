@@ -144,7 +144,7 @@ This specification governs the notification sent to a paying customer when a tra
 - N-2: Notification dispatch **MUST NOT** block or fail the payment transaction that triggered it.
 - N-3: The default delivery channel **MUST** be email, sent to the address on the paying customer's account; the system **MAY** additionally deliver by SMS or push notification if that customer has separately opted into that specific channel.
 - N-4: If the paying customer's `preferences.notifications.transaction_receipts` field is `false`, the dispatcher **MUST** suppress delivery on every channel for that event and **MUST** record an audit entry with status `SKIPPED`.
-- N-5: If a delivery attempt fails for any reason other than a suppressed preference, the system **MUST** retry according to the retry policy in §4; a delivery failure **MUST NOT** cause the settled transaction to be reversed.
+- N-5: If a delivery attempt fails for any reason other than a suppressed preference, the system **MUST** retry according to the retry policy in §6; a delivery failure **MUST NOT** cause the settled transaction to be reversed.
 
 #### 3. Data Model
 
@@ -169,7 +169,9 @@ This specification governs the notification sent to a paying customer when a tra
 }
 ```
 
-#### 4. State Rules
+#### 6. State Rules
+
+*(Sections 4, Invariants, and 5, Failure Modes Matrix, are omitted from this excerpt; the delivery machinery below has no domain invariant beyond N-1 through N-5 and inherits its failure vocabulary from the platform-wide `PERSISTENCE_TIMEOUT` and `MALFORMED_PAYLOAD` codes Chapter 7 catalogs.)
 
 ```mermaid
 stateDiagram-v2
