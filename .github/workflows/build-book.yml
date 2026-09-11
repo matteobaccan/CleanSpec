@@ -1,0 +1,117 @@
+name: Build Book
+
+on:
+  push:
+    branches: [main, book-manuscript]
+    tags: ["v*.*.*"]
+    paths:
+      - "manuscript/**"
+      - "book.md"
+      - "build/**"
+      - "assets/cover/**"
+      - "tools/check_manuscript.py"
+      - ".github/workflows/build-book.yml"
+  pull_request:
+    branches: [main, book-manuscript]
+    paths:
+      - "manuscript/**"
+      - "book.md"
+      - "build/**"
+      - "assets/cover/**"
+      - "tools/check_manuscript.py"
+      - ".github/workflows/build-book.yml"
+  workflow_dispatch:
+    inputs:
+      formats:
+        description: "Comma-separated Pandoc formats to build"
+        required: false
+        default: "epub,docx,pdf"
+
+concurrency:
+  group: build-book-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint manuscript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run manuscript lint
+        run: python tools/check_manuscript.py
+
+  build:
+    name: Build EPUB / DOCX / PDF
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Install LaTeX engine (for PDF)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-xetex texlive-latex-extra texlive-fonts-recommended lmodern
+
+      - name: Determine requested formats
+        id: formats
+        shell: bash
+        run: |
+          formats="${{ github.event.inputs.formats }}"
+          if [ -z "$formats" ]; then formats="epub,docx,pdf"; fi
+          echo "formats=$formats" >> "$GITHUB_OUTPUT"
+
+      - name: Build book
+        shell: pwsh
+        run: |
+          $formats = "${{ steps.formats.outputs.formats }}".Split(',')
+          ./build/build.ps1 -Formats $formats
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-spec-book
+          path: |
+            build/out/clean-spec.md
+            build/out/clean-spec.epub
+            build/out/clean-spec.docx
+            build/out/clean-spec.pdf
+          if-no-files-found: warn
+          retention-days: 30
+
+  release:
+    name: Attach build to GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: clean-spec-book
+          path: build/out
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            build/out/clean-spec.epub \
+            build/out/clean-spec.docx \
+            build/out/clean-spec.pdf \
+            --title "Clean Spec ${{ github.ref_name }}" \
+            --generate-notes
