@@ -54,9 +54,15 @@ if (-not $pandoc) {
 }
 
 $meta = Join-Path $PSScriptRoot 'metadata.yaml'
+$cover = Join-Path $root 'assets/cover/cover.png'
 foreach ($fmt in $Formats) {
     $target = Join-Path $out "clean-spec.$fmt"
     $args = @($combined, '--metadata-file', $meta, '--from', 'markdown+smart', '--toc', '--top-level-division=chapter', '-o', $target)
+    if ((Test-Path $cover) -and $fmt -eq 'epub') {
+        # cover-image is an EPUB-only metadata key in Pandoc's default templates;
+        # the plain LaTeX template used for PDF ignores it without a custom template.
+        $args += @('--metadata', "cover-image=$cover")
+    }
     if ($fmt -eq 'pdf') {
         $engine = @('xelatex', 'lualatex', 'pdflatex') | Where-Object { Get-Command $_ -ErrorAction SilentlyContinue } | Select-Object -First 1
         if (-not $engine) {

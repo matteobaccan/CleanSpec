@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2400" viewBox="0 0 1600 2400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#12151d"/>
+      <stop offset="100%" stop-color="#0a0c11"/>
+    </linearGradient>
+    <linearGradient id="brace" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e8b45a"/>
+      <stop offset="100%" stop-color="#c9903a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="2400" fill="url(#bg)"/>
+
+  <!-- faint blueprint grid -->
+  <g stroke="#ffffff" stroke-opacity="0.035" stroke-width="1">
+    <path d="M0,120 H1600 M0,280 H1600 M0,440 H1600 M0,600 H1600 M0,760 H1600 M0,920 H1600 M0,1080 H1600 M0,1240 H1600 M0,1400 H1600 M0,1560 H1600 M0,1720 H1600 M0,1880 H1600 M0,2040 H1600 M0,2200 H1600"/>
+    <path d="M120,0 V2400 M320,0 V2400 M520,0 V2400 M720,0 V2400 M920,0 V2400 M1120,0 V2400 M1320,0 V2400 M1480,0 V2400"/>
+  </g>
+
+  <!-- outer frame -->
+  <rect x="64" y="64" width="1472" height="2272" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2"/>
+
+  <!-- large decorative opening brace -->
+  <path d="M 300 250
+           C 210 250 186 316 186 424
+           L 186 860
+           C 186 950 150 996 96 1018
+           C 150 1040 186 1086 186 1176
+           L 186 1612
+           C 186 1720 210 1786 300 1786"
+        fill="none" stroke="url(#brace)" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- normative kicker -->
+  <text x="360" y="330" font-family="Consolas, 'Courier New', monospace" font-size="30" letter-spacing="6" fill="#e8b45a" opacity="0.9">SPEC-BOOK-001</text>
+  <text x="360" y="372" font-family="Consolas, 'Courier New', monospace" font-size="22" letter-spacing="3" fill="#8a93a6">STATUS: ACTIVE &#183; VERSION 1.0.0</text>
+
+  <!-- hairline -->
+  <line x1="360" y1="410" x2="900" y2="410" stroke="#e8b45a" stroke-width="3" opacity="0.8"/>
+
+  <!-- title -->
+  <text x="356" y="600" font-family="Georgia, 'Times New Roman', serif" font-size="168" font-weight="700" fill="#f4f1ea">Clean</text>
+  <text x="356" y="770" font-family="Georgia, 'Times New Roman', serif" font-size="168" font-weight="700" fill="#f4f1ea">Spec</text>
+
+  <!-- subtitle -->
+  <text x="360" y="860" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-style="italic" fill="#c7cbd6">Specification Engineering</text>
+  <text x="360" y="912" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-style="italic" fill="#c7cbd6">for the Age of AI</text>
+
+  <!-- state-diagram motif: a small closed loop, P -> Q -> I -> P -->
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e8b45a" fill-opacity="0.5"/>
+    </marker>
+  </defs>
+  <g stroke="#e8b45a" stroke-opacity="0.32" stroke-width="2.5" fill="none">
+    <path d="M 826 1130 C 920 1080 1040 1080 1132 1128" marker-end="url(#arrow)"/>
+    <path d="M 1150 1176 C 1120 1270 1010 1330 906 1338" marker-end="url(#arrow)"/>
+    <path d="M 862 1310 C 800 1240 786 1180 806 1128" stroke-dasharray="3 7" marker-end="url(#arrow)"/>
+  </g>
+  <g fill="#0e1119" stroke="#e8b45a" stroke-opacity="0.6" stroke-width="3">
+    <circle cx="800" cy="1112" r="34"/>
+    <circle cx="1150" cy="1150" r="34"/>
+    <circle cx="884" cy="1352" r="34"/>
+  </g>
+  <g font-family="Georgia, serif" font-size="26" fill="#e8b45a" opacity="0.85" text-anchor="middle">
+    <text x="800" y="1122">P</text>
+    <text x="1150" y="1160">Q</text>
+    <text x="884" y="1362">I</text>
+  </g>
+
+  <!-- normative fragment strip -->
+  <g font-family="Consolas, 'Courier New', monospace" font-size="24" fill="#5b6478">
+    <text x="360" y="1520" letter-spacing="1">N-1: balance.cents &#8805; 0 for every account, always.</text>
+    <text x="360" y="1560" letter-spacing="1">Q-1: on success, balance decreases by exactly amount.</text>
+    <text x="360" y="1600" letter-spacing="1">I-1: &#8721;debits &#8722; &#8721;credits = 0.</text>
+  </g>
+
+  <line x1="360" y1="1690" x2="1240" y2="1690" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2"/>
+
+  <!-- author -->
+  <text x="360" y="1760" font-family="Consolas, 'Courier New', monospace" font-size="34" letter-spacing="4" fill="#f4f1ea">MATTEO BACCAN</text>
+
+  <!-- closing brace echo, bottom right -->
+  <path d="M 1300 2040
+           C 1390 2040 1414 2080 1414 2140
+           L 1414 2180
+           C 1414 2220 1450 2240 1504 2250
+           C 1450 2260 1414 2280 1414 2320
+           L 1414 2340"
+        fill="none" stroke="url(#brace)" stroke-width="10" stroke-linecap="round" opacity="0.55"/>
+</svg>
